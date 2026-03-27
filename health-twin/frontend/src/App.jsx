@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Heart, Activity, Moon, Footprints, MessageSquare, Info, Database, Menu, X, ChevronRight, User } from 'lucide-react';
 
+// --- CONFIGURATION ---
+// I have updated this to your live Render link
+const API_URL = "https://digital-health-twin-ai.onrender.com";
+
 const App = () => {
   const [patients, setPatients] = useState([]);
   const [selected, setSelected] = useState(null);
@@ -20,7 +24,8 @@ const App = () => {
     };
     window.addEventListener('resize', handleResize);
     
-    axios.get('http://127.0.0.1:8000/patients')
+    // FETCH PATIENTS FROM RENDER
+    axios.get(`${API_URL}/patients`)
       .then(res => {
         setPatients(res.data);
         if (res.data.length > 0) setSelected(res.data[0]);
@@ -35,7 +40,8 @@ const App = () => {
     setChat(prev => [...prev, { role: 'user', text: query }]);
     setLoading(true);
     try {
-      const res = await axios.post('http://127.0.0.1:8000/ask', {
+      // POST QUERY TO RENDER
+      const res = await axios.post(`${API_URL}/ask`, {
         patient_id: selected.patient_id,
         query: query
       });
@@ -46,7 +52,7 @@ const App = () => {
         reasoning: res.data.reasoning
       }]);
     } catch (err) {
-      setChat(prev => [...prev, { role: 'ai', text: "Error: Engine Connection Offline." }]);
+      setChat(prev => [...prev, { role: 'ai', text: "Error: Engine Connection Offline. The backend may be 'sleeping' on the free tier. Please wait 60 seconds and try again." }]);
     } finally {
       setLoading(false);
       setQuery("");
@@ -60,7 +66,7 @@ const App = () => {
   };
 
   return (
-    <div style={{ display: 'flex', width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative' }}>
+    <div style={{ display: 'flex', width: '100vw', height: '100vh', overflow: 'hidden', position: 'relative', fontFamily: 'Inter, system-ui, sans-serif' }}>
       
       {isMobile && isSidebarOpen && (
         <div 
@@ -69,6 +75,7 @@ const App = () => {
         />
       )}
 
+      {/* SIDEBAR */}
       <aside style={{ 
         width: isSidebarOpen ? (isMobile ? '80%' : '300px') : '0px', 
         position: isMobile ? 'absolute' : 'relative',
@@ -106,12 +113,13 @@ const App = () => {
         </div>
       </aside>
 
+      {/* MAIN CONTENT */}
       <main style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', backgroundColor: '#f8fafc' }}>
         
         <header style={{ 
           minHeight: '64px', backgroundColor: 'white', borderBottom: '1px solid #e2e8f0', 
           display: 'flex', alignItems: 'center', padding: '10px 20px', justifyContent: 'space-between', zIndex: 50,
-          flexWrap: 'wrap' // Allows badges to wrap on mobile
+          flexWrap: 'wrap'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <button onClick={() => setSidebarOpen(!isSidebarOpen)} style={{ background: '#f1f5f9', border: 'none', padding: '8px', borderRadius: '8px', cursor: 'pointer', display: 'flex' }}>
@@ -123,7 +131,6 @@ const App = () => {
             </div>
           </div>
           
-          {/* FIX: Removed .slice(0, 1) and added flex-wrap to show ALL badges */}
           <div style={{ 
             display: 'flex', 
             gap: '6px', 
